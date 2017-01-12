@@ -1,5 +1,5 @@
-import numpy
-import pandas
+import numpy as np
+import pandas as pd
 import time
 
 from keras.models import Sequential
@@ -15,30 +15,57 @@ from sklearn.metrics import mean_absolute_error
 # Visualization
 from keras.utils.visualize_util import plot
 
+def get_lagged_dataframe(df, lags = 1):
+    lagged_tss = []
+    
+    for ts in df:
+        lagged_tss.append(get_lagged_ts(df[ts], lags))
+
+    return np.hstack(tuple(lagged_tss))
+        
+def get_lagged_ts(ts, lags = 1):
+    temp = []
+
+    for i in range(lags):
+        temp.append(ts[i:i-lags])
+
+    temp.append(ts[lags:])
+
+    return np.array(temp).T
+
 # load dataset
-dataframe = pandas.read_csv("../muia-tfm-data/data-set.csv")
+dataframe = pd.read_csv("../muia-tfm-data/data-set.csv")
 
-# length = len(dataframe)
-# dataframe = dataframe[(length - 20):length]
+num_instances = 500
 
-dataset = dataframe.values
-# split into input (X) and output (Y) variables
-X = dataset[:,1:-1]
-Y = dataset[:,-1]
+length = len(dataframe)
+dataframe = dataframe[(length - num_instances):length]
+
+df_x = dataframe.drop(['Index','Y'], 1)
+# DEBUG
+# df_x = dataframe[['EuroPriceInUSD', 'MarketPrice', 'MedianConfirmationTime']]
+
+lags = 3
+
+X = get_lagged_dataframe(df_x, lags = lags)
+
+Y = dataframe['Y'].values[lags:]
 
 seed = 7
-numpy.random.seed(seed)
+np.random.seed(seed)
+
+num_inputs = len(X[0])
 
 print("Building the model.")
 # Define NNs structure
 def deeper_model():
     # create model
     model = Sequential()
-    model.add(Dense(10, input_dim=18,
+    model.add(Dense(num_inputs * 2, input_dim = num_inputs,
                     init='normal',
                     W_regularizer = l2(0.001),
                     activation='relu'))
-    model.add(Dense(10, init='normal',
+    model.add(Dense(num_inputs * 2, init='normal',
                     activation='relu',
                     W_regularizer = l2(0.001)))
     model.add(Dense(1, activation='linear',
