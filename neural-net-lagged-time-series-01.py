@@ -36,7 +36,7 @@ def get_lagged_ts(ts, lags = 1):
 # load dataset
 dataframe = pd.read_csv("../muia-tfm-data/data-set.csv")
 
-num_instances = 500
+num_instances = 250
 
 length = len(dataframe)
 dataframe = dataframe[(length - num_instances):length]
