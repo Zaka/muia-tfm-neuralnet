@@ -45,7 +45,7 @@ df_x = dataframe.drop(['Index','Y'], 1)
 # DEBUG
 # df_x = dataframe[['EuroPriceInUSD', 'MarketPrice', 'MedianConfirmationTime']]
 
-lags = 3
+lags = 10
 
 X = get_lagged_dataframe(df_x, lags = lags)
 
@@ -61,11 +61,11 @@ print("Building the model.")
 def deeper_model():
     # create model
     model = Sequential()
-    model.add(Dense(num_inputs * 2, input_dim = num_inputs,
+    model.add(Dense(300, input_dim = num_inputs,
                     init='normal',
                     W_regularizer = l2(0.001),
                     activation='relu'))
-    model.add(Dense(num_inputs * 2, init='normal',
+    model.add(Dense(300, init='normal',
                     activation='relu',
                     W_regularizer = l2(0.001)))
     model.add(Dense(1, activation='linear',
