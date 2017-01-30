@@ -74,14 +74,10 @@ def rnn_model(nb_samples, timesteps, input_dim):
     model.add(Dense(1, activation = 'linear'))
     
     # Compile model
-    # model.compile(loss='mean_squared_error',
-    #               optimizer='adam')
     model.compile(loss='mean_absolute_error',
                   optimizer='adam')
 
     return model
-
-# dataframe = pd.read_csv("../muia-tfm-data/data-set.csv")
 
 X,y = get_dataset(num_instances = 500,
                   lags = 3)
@@ -93,14 +89,6 @@ t0 = time.time()
 model = rnn_model(nb_samples = nb_samples,
                   timesteps = timesteps,
                   input_dim = input_dim)
-
-
-# * Train an RNN in a train partition, predict.
-# * Denormalize prediction and test. Find error between those two
-# measures.
-# Collect that error until all training partitions have been trained,
-# and all test partition tested.
-# Compute MAE with all collected errors.
 
 print("Performing Time Series Cross Validation.")
 
@@ -122,14 +110,10 @@ for train_index, test_index in tscv.split(X):
 
     error_list.append((denormalize_market_price(y_test_partition[-1])
                       - denormalize_market_price(prediction))[0][0])
-
     
 mae = np.mean([abs(x) for x in error_list])
     
-# results = cross_val_score(mlp, X, Y, cv=tscv)
 t1 = time.time()
-# mae = mean_absolute_error(Y[1:], results)
-
 
 print("MAE: %.4f USD" %(mae))
 print("It took %f seconds" % (t1 - t0))
