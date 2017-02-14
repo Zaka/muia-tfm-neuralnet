@@ -33,13 +33,17 @@ def prepare_sequences(x_train, y_train, window_length):
 
 def get_dataset(num_instances = 20, lags = 3):
     # load dataset
-    dataframe = pd.read_csv("../muia-tfm-data/data-set.csv")
+    dataframe = pd.read_csv("../muia-tfm-dataset/dataset.csv")
 
-    global dataframe
+    columns = [ 'MarketPrice',
+                'TotalBitcoins',
+                'MedianConfirmationTime',
+                'CostPerTransactionPercent' ]
 
     length = len(dataframe)
     dataframe = dataframe[(length - num_instances):length]
-
+    dataframe = dataframe[columns]
+    
     dataset = dataframe.values
     # split into input (X) and output (Y) variables
     X = dataset[:,1:-1]
@@ -104,7 +108,7 @@ for train_index, test_index in tscv.split(X):
     y_test_partition = y[test_index[0]:test_index[-1] + 1]
     
     fitted = model.fit(X_train_partition, y_train_partition,
-                       nb_epoch = 100)
+                       nb_epoch = 1000)
 
     prediction = model.predict(X_test_partition)
 
