@@ -19,18 +19,6 @@ def denormalize_market_price(normalized_market_price):
     return (normalized_market_price *
             market_price_stddev) + market_price_mean
 
-def prepare_sequences(x_train, y_train, window_length):
-    windows = []
-    windows_y = []
-    for i, sequence in enumerate(x_train):
-        len_seq = len(sequence)
-        for window_start in range(0, len_seq - window_length + 1):
-            window_end = window_start + window_length
-            window = sequence[window_start:window_end]
-            windows.append(window)
-            windows_y.append(y_train[i])
-    return np.array(windows), np.array(windows_y)
-
 def get_dataset(num_instances = 20, lags = 3):
     # load dataset
     dataframe = pd.read_csv("../muia-tfm-dataset/dataset.csv")
@@ -57,14 +45,6 @@ def get_dataset(num_instances = 20, lags = 3):
     print("y.shape: ", y.shape)    
 
     return X,y
-
-def vectorize(dataset, lags):
-    result = []
-    for start,end in zip(range(len(dataset) - lags + 1),
-                      range(lags, len(dataset) + 1)):
-        result.append(dataset[start:end])
-
-    return np.array(result)
 
 def rnn_model(nb_samples, timesteps, input_dim):
     # create model
