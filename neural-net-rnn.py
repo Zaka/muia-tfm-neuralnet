@@ -21,7 +21,7 @@ def denormalize_market_price(normalized_market_price):
 
 def get_dataset(num_instances = 20, lags = 3):
     # load dataset
-    dataframe = pd.read_csv("../muia-tfm-dataset/dataset.csv")
+    dataframe = pd.read_csv("../muia-tfm-dataset/dataset-v2.csv")
 
     columns = [ 'MarketPrice',
                 'TotalBitcoins',
