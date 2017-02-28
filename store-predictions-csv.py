@@ -88,59 +88,26 @@ def rnn_model(nb_samples, timesteps, input_dim):
 
     return model
 
-def wrapper_fss():
+def main():
     columns = [ 'NumTransactions', 'TotalBitcoins', 'MarketPrice',
                 'SP500-Close', 'Difficulty', 'BitcoinDaysDestroyed',
-                'CostPerTransaction', 'TransactionFeesUSD', 'TransactionFees',
-                'MedianConfirmationTime', 'TxTradeRatio', 'EuroPriceInUSD',
-                'SP500-Volume', 'TradeVolume', 'OutputVolume',
+                'CostPerTransaction', 'TransactionFeesUSD',
+                'TransactionFees', 'MedianConfirmationTime',
+                'TxTradeRatio', 'EuroPriceInUSD', 'SP500-Volume',
+                'TradeVolume', 'OutputVolume',
                 'EstimatedTransactionVolume', 'WikipediaTrend',
                 'CostPerTransactionPercent' ]
-
-    dataset = Dataset(num_instances = 2673)
-
-    selected_vars = ['MarketPrice']
-    selected_vars_score = sys.maxsize
-    not_selected_vars = columns
-    not_selected_vars.remove('MarketPrice')
     
-    with timer(msg = "WFSS"):
-        while not_selected_vars:
-            score = sys.maxsize
-            selected_var = ''
+    dataset = Dataset(num_instances = 2673)
+    X,y = dataset.get_columns(columns = columns)
+    
+    # Run tscv_score with those columns
+    predictions = tscv_score(X, y)
 
-            for col in not_selected_vars:
-                # pdb.set_trace()
-                
-                candidate_columns = selected_vars.copy()
-                candidate_columns.append(col)
-                
-                X,y = dataset.get_columns(columns = candidate_columns)
+    df = pd.DataFrame({"RNN-Prediction" : predictions})
+    df.to_csv("output_all_variables_rnn.csv", index = False)
 
-                candidates_score = tscv_score(X,y)
-
-                print("Candidate columns: ", candidate_columns)
-                print("Candidates score: ", candidates_score)
-                
-                if candidates_score < score:
-                    score = candidates_score
-                    selected_var = col
-
-            if score < selected_vars_score:
-                selected_vars.append(selected_var)
-                not_selected_vars.remove(selected_var)
-                selected_vars_score = score
-
-                print("Selected vars: ", selected_vars)
-                print("Current MAE: ", selected_vars_score)
-            else:
-                break
-
-    print("Selected features: ", selected_vars)
-    print("Selected features score: ", selected_vars_score)
-    print("Finished.")
-
-def tscv_score(X, y):
+def tscv_score(X, y): 
     nb_samples, timesteps, input_dim = X.shape
 
     model = rnn_model(nb_samples = nb_samples,
@@ -149,10 +116,11 @@ def tscv_score(X, y):
 
     print("Performing Time Series Cross Validation.")
 
+
     with timer(msg = "Split"):
         tscv_split = TimeSeriesSplit(n_splits = len(X) - 1)
 
-        error_list = []
+        predictions = []    
 
         # Use 1095 as the smalles partition size. This is imposed by
         # VAR because if we use more instances to create the
@@ -161,7 +129,7 @@ def tscv_score(X, y):
         # beginning values.
 
         SMALLEST_PARTITION_SIZE = 1095
-
+        
         for train_index, test_index in tscv_split.split(X):
             if len(train_index) >= SMALLEST_PARTITION_SIZE:
                 X_train_partition = X[train_index[0]:train_index[-1] + 1]
@@ -170,17 +138,14 @@ def tscv_score(X, y):
                 X_test_partition = X[test_index[0]:test_index[-1] + 1]
                 y_test_partition = y[test_index[0]:test_index[-1] + 1]
 
-                fitted = model.fit(X_train_partition, y_train_partition, 
-                                   nb_epoch = 10, verbose = 0)
+                fitted = model.fit(X_train_partition, y_train_partition,
+                                   nb_epoch = 1000, verbose = 1)
 
-                prediction = model.predict(X_test_partition, verbose = 0)
+                predictions.append(
+                    denormalize_market_price(
+                        model.predict(X_test_partition))[0][0])
 
-                error_list.append((denormalize_market_price(y_test_partition[-1][0])
-                                   - denormalize_market_price(prediction))[0][0])
-
-                mae = np.mean([abs(x) for x in error_list])
-    
-    return mae
+    return predictions 
 
 if __name__ == '__main__':
-    wrapper_fss()
+    main()
