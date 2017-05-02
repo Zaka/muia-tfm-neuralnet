@@ -89,14 +89,16 @@ def rnn_model(nb_samples, timesteps, input_dim):
     return model
 
 def main():
-    columns = [ 'NumTransactions', 'TotalBitcoins', 'MarketPrice',
-                'SP500-Close', 'Difficulty', 'BitcoinDaysDestroyed',
-                'CostPerTransaction', 'TransactionFeesUSD',
-                'TransactionFees', 'MedianConfirmationTime',
-                'TxTradeRatio', 'EuroPriceInUSD', 'SP500-Volume',
-                'TradeVolume', 'OutputVolume',
-                'EstimatedTransactionVolume', 'WikipediaTrend',
-                'CostPerTransactionPercent' ]
+    columns = [ 'TotalBitcoins', 'MarketPrice' ]
+
+    # columns = [ 'NumTransactions', 'TotalBitcoins', 'MarketPrice',
+    #             'SP500-Close', 'Difficulty', 'BitcoinDaysDestroyed',
+    #             'CostPerTransaction', 'TransactionFeesUSD',
+    #             'TransactionFees', 'MedianConfirmationTime',
+    #             'TxTradeRatio', 'EuroPriceInUSD', 'SP500-Volume',
+    #             'TradeVolume', 'OutputVolume',
+    #             'EstimatedTransactionVolume', 'WikipediaTrend',
+    #             'CostPerTransactionPercent' ]
     
     dataset = Dataset(num_instances = 2673)
     X,y = dataset.get_columns(columns = columns)
@@ -105,7 +107,12 @@ def main():
     predictions = tscv_score(X, y)
 
     df = pd.DataFrame({"RNN-Prediction" : predictions})
-    df.to_csv("output_all_variables_rnn.csv", index = False)
+    
+    output_file_name = ( "output_rnn_"
+                         + time.strftime("%Y%m%d-%H%M%S", time.localtime())
+                         + ".csv" )
+        
+    df.to_csv(output_file_name, index = False)
 
 def tscv_score(X, y): 
     nb_samples, timesteps, input_dim = X.shape
@@ -114,6 +121,13 @@ def tscv_score(X, y):
                       timesteps = timesteps,
                       input_dim = input_dim)
 
+    print("*"*50)
+    print("nb_samples: ", nb_samples)
+    print("timesteps: ", timesteps)
+    print("input_dim: ", input_dim)
+    
+    print(model.summary())
+    
     print("Performing Time Series Cross Validation.")
 
 

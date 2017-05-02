@@ -147,6 +147,16 @@ def tscv_score(X, y):
                       timesteps = timesteps,
                       input_dim = input_dim)
 
+    print("-"*50)
+    print("batch_input_shape: ", model.input_shape)
+    print("nb_samples: ", nb_samples)
+    print("timesteps: ", timesteps)
+    print("input_dim: ", input_dim)
+    print("-"*50)
+    
+    print(model.summary())
+    # pdb.set_trace()
+    
     print("Performing Time Series Cross Validation.")
 
     with timer(msg = "Split"):
@@ -171,7 +181,7 @@ def tscv_score(X, y):
                 y_test_partition = y[test_index[0]:test_index[-1] + 1]
 
                 fitted = model.fit(X_train_partition, y_train_partition, 
-                                   nb_epoch = 10, verbose = 0)
+                                   nb_epoch = 1, verbose = 0)
 
                 prediction = model.predict(X_test_partition, verbose = 0)
 
